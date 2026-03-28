@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PC Health Checker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --panel: #111827;
+      --border: #1e2d45;
+      --good: #00e5a0;
+      --warning: #f5a623;
+      --critical: #ff4d6d;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --accent: #38bdf8;
+      --mono: 'Share Tech Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      background-image:
+        radial-gradient(ellipse at 20% 0%, rgba(56,189,248,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(0,229,160,0.04) 0%, transparent 60%);
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .logo {
+      font-size: 2.8rem;
+      line-height: 1;
+    }
+
+    .header-text h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--accent);
+    }
+
+    .header-text p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-family: var(--mono);
+      margin-top: 2px;
+    }
+
+    /* ── Scan Button ── */
+    .scan-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    #scanBtn {
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: #0a0e1a;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    #scanBtn:hover { opacity: 0.85; }
+    #scanBtn:active { transform: scale(0.97); }
+    #scanBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #statusLine {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* ── Overall Banner ── */
+    #overallBanner {
+      display: none;
+      padding: 1rem 1.4rem;
+      border-radius: 8px;
+      border-left: 4px solid;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+      font-weight: 700;
+      animation: fadeIn 0.4s ease;
+    }
+
+    #overallBanner.good    { border-color: var(--good);    background: rgba(0,229,160,0.07);  color: var(--good); }
+    #overallBanner.warning { border-color: var(--warning); background: rgba(245,166,35,0.07); color: var(--warning); }
+    #overallBanner.critical{ border-color: var(--critical);background: rgba(255,77,109,0.07); color: var(--critical); }
+
+    /* ── System Info Bar ── */
+    #sysInfo {
+      display: none;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      padding: 0.6rem 1rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    #sysInfo span { color: var(--text); }
+
+    /* ── Cards Grid ── */
+    #cardsGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.3rem;
+      position: relative;
+      overflow: hidden;
+      animation: slideUp 0.4s ease both;
+      transition: border-color 0.3s;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .card.good::before    { background: var(--good); }
+    .card.warning::before { background: var(--warning); }
+    .card.critical::before{ background: var(--critical); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.8rem;
+    }
+
+    .card-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+
+    .card-icon { font-size: 1.5rem; }
+
+    .card-value {
+      font-family: var(--mono);
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+    }
+
+    .card.good    .card-value { color: var(--good); }
+    .card.warning .card-value { color: var(--warning); }
+    .card.critical .card-value { color: var(--critical); }
+
+    .card-message {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 0.4rem;
+    }
+    .good    .status-dot { background: var(--good);    box-shadow: 0 0 6px var(--good); }
+    .warning .status-dot { background: var(--warning); box-shadow: 0 0 6px var(--warning); }
+    .critical .status-dot{ background: var(--critical);box-shadow: 0 0 6px var(--critical); animation: pulse 1s infinite; }
+
+    /* ── Skeleton loader ── */
+    .skeleton {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.3rem;
+      animation: shimmer 1.4s infinite;
+    }
+
+    .skel-bar {
+      height: 12px;
+      border-radius: 4px;
+      background: var(--border);
+      margin-bottom: 10px;
+    }
+
+    .skel-bar.wide  { width: 60%; }
+    .skel-bar.short { width: 35%; height: 28px; margin-bottom: 12px; }
+    .skel-bar.full  { width: 90%; height: 10px; }
+
+    /* ── Empty state ── */
+    #emptyState {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+
+    #emptyState .big-icon { font-size: 4rem; margin-bottom: 1rem; }
+    #emptyState p { font-size: 0.9rem; line-height: 1.6; }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── Animations ── */
+    @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse   { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes shimmer {
+      0%   { opacity: 1; }
+      50%  { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    @media (max-width: 480px) {
+      .header-text h1 { font-size: 1.4rem; }
+      #cardsGrid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">🖥️</div>
+    <div class="header-text">
+      <h1>PC Health Checker</h1>
+      <p>// real-time system diagnostics</p>
+    </div>
+  </header>
+
+  <div class="scan-row">
+    <button id="scanBtn" onclick="runScan()">▶ Run Health Scan</button>
+    <span id="statusLine">Ready. Click the button to start.</span>
+  </div>
+
+  <div id="overallBanner"></div>
+
+  <div id="sysInfo" style="display:none">
+    <div>OS: <span id="infoOS">—</span></div>
+    <div>Host: <span id="infoHost">—</span></div>
+    <div>Scanned: <span id="infoTime">—</span></div>
+  </div>
+
+  <div id="cardsGrid">
+    <div id="emptyState">
+      <div class="big-icon">🔍</div>
+      <p>Click <strong>Run Health Scan</strong> to check your PC.<br/>
+      Results will appear here in plain English.</p>
+    </div>
+  </div>
+
+  <footer>
+    PC Health Checker &nbsp;·&nbsp; Built with Python + HTML &nbsp;·&nbsp;
+    <a href="https://github.com/" target="_blank">View on GitHub</a>
+  </footer>
+
+</div>
+
+<script>
+  function runScan() {
+    const btn = document.getElementById('scanBtn');
+    const statusLine = document.getElementById('statusLine');
+    const grid = document.getElementById('cardsGrid');
+    const banner = document.getElementById('overallBanner');
+    const sysInfo = document.getElementById('sysInfo');
+
+    btn.disabled = true;
+    statusLine.textContent = '⏳ Scanning... (this takes ~2 seconds)';
+    banner.style.display = 'none';
+    sysInfo.style.display = 'none';
+
+    // Show skeleton cards while loading
+    grid.innerHTML = Array(6).fill(`
+      <div class="skeleton">
+        <div class="skel-bar wide"></div>
+        <div class="skel-bar short"></div>
+        <div class="skel-bar full"></div>
+      </div>
+    `).join('');
+
+    // Call our Python server
+    fetch('http://localhost:8000/check')
+      .then(res => res.json())
+      .then(data => {
+        renderReport(data);
+        btn.disabled = false;
+        statusLine.textContent = '✓ Scan complete. Last checked: ' + data.system.checked_at;
+      })
+      .catch(err => {
+        grid.innerHTML = `
+          <div id="emptyState" style="grid-column:1/-1">
+            <div class="big-icon">⚠️</div>
+            <p><strong>Could not connect to the server.</strong><br/><br/>
+            Make sure you started <code>server.py</code> first by running:<br/>
+            <code>python server.py</code><br/><br/>
+            Then refresh this page.</p>
+          </div>`;
+        btn.disabled = false;
+        statusLine.textContent = '❌ Connection failed.';
+      });
+  }
+
+  function renderReport(data) {
+    // Overall banner
+    const banner = document.getElementById('overallBanner');
+    banner.textContent = data.summary;
+    banner.className = data.overall;
+    banner.style.display = 'block';
+
+    // System info bar
+    document.getElementById('infoOS').textContent   = data.system.os;
+    document.getElementById('infoHost').textContent = data.system.hostname;
+    document.getElementById('infoTime').textContent = data.system.checked_at;
+    document.getElementById('sysInfo').style.display = 'flex';
+
+    // Build cards
+    const grid = document.getElementById('cardsGrid');
+    grid.innerHTML = data.checks.map((check, i) => `
+      <div class="card ${check.status}" style="animation-delay: ${i * 0.07}s">
+        <div class="card-header">
+          <div>
+            <div class="card-title">
+              <span class="status-dot"></span>${check.name}
+            </div>
+          </div>
+          <div class="card-icon">${check.icon}</div>
+        </div>
+        <div class="card-value">${check.value}</div>
+        <div class="card-message">${check.message}</div>
+      </div>
+    `).join('');
+  }
+</script>
+</body>
+</html>
