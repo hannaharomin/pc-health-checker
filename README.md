@@ -51,20 +51,3 @@ Click **Run Health Scan** to see your results!
 | `health_checker.py` | All the health check logic |
 | `server.py` | Tiny web server (connects Python to the HTML page) |
 | `index.html` | The visual dashboard in your browser |
-
----
-
-## Skills Demonstrated (for your portfolio)
-- Python scripting with `psutil` and standard library modules
-- Building a REST API with Python's built-in HTTP server
-- Connecting a frontend (HTML/JS) to a backend (Python)
-- Parsing and serving JSON data
-- Real IT diagnostic tasks: disk, CPU, memory, network checks
-
----
-
-## Ideas to Extend This Project
-- Add email alerts when something hits "critical"
-- Log results to a JSON file to track trends over time
-- Package it as a desktop app with `tkinter`
-- Add more checks: battery level, running processes, open ports
